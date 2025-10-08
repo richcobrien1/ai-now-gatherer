@@ -11,8 +11,19 @@ const CREDENTIALS_PATH = './youtube-credentials.json';
 
 // Playlist IDs (update these with your actual playlist IDs)
 const PLAYLISTS = {
-  'ai-now': 'YOUR_AI_NOW_PLAYLIST_ID',        // Desktop Landscape
-  'ai-now-podcast': 'YOUR_AI_NOW_PODCAST_ID'  // Mobile Portrait
+  // AI-Now brand
+  'ai-now': 'PLQDaXrlGzy40uuAqfgi5t1ZbiaDhoW-By',        // Desktop Landscape
+  'ai-now-podcast': 'PLQDaXrlGzy42AYgXAa4JpeaLA2PcXyeIt',  // Mobile Portrait
+
+  // AI-Now-Educate brand
+  'ai-now-educate': 'PLQDaXrlGzy42uIXMHniHX-6ZN55hm1zd7',  // Desktop Landscape
+  'ai-now-educate-podcast': 'PLQDaXrlGzy40KfvrOHhVexGZdG1_w7kj7',  // Mobile Portrait
+
+  // Add more brands as needed
+  // 'ai-now-commercial': 'YOUR_COMMERCIAL_PLAYLIST_ID',
+  // 'ai-now-commercial-podcast': 'YOUR_COMMERCIAL_PODCAST_ID',
+  // 'ai-now-conceptual': 'YOUR_CONCEPTUAL_PLAYLIST_ID',
+  // 'ai-now-conceptual-podcast': 'YOUR_CONCEPTUAL_PODCAST_ID',
 };
 
 // Get video dimensions using ffprobe
@@ -57,22 +68,24 @@ function getVideoDimensions(videoPath) {
   });
 }
 
-// Determine playlist based on video format
-function getPlaylistForVideo(dimensions, contentType = 'premium') {
+// Determine playlist based on video format and brand
+function getPlaylistForVideo(dimensions, contentType = 'premium', brand = 'ai-now') {
+  const basePlaylist = brand.toLowerCase();
+
   if (!dimensions) {
-    // Default to AI-Now for premium, AI-Now Podcast for standard
-    return contentType === 'premium' ? PLAYLISTS['ai-now'] : PLAYLISTS['ai-now-podcast'];
+    // Default playlists based on format
+    return contentType === 'premium' ? PLAYLISTS[basePlaylist] || PLAYLISTS['ai-now'] : PLAYLISTS[`${basePlaylist}-podcast`] || PLAYLISTS['ai-now-podcast'];
   }
 
-  // Landscape (desktop) -> AI-Now playlist
-  // Portrait (mobile) -> AI-Now Podcast playlist
+  // Landscape (desktop) -> base playlist (e.g., 'ai-now' or 'ai-now-educate')
+  // Portrait (mobile) -> podcast playlist (e.g., 'ai-now-podcast' or 'ai-now-educate-podcast')
   if (dimensions.isLandscape) {
-    return PLAYLISTS['ai-now'];
+    return PLAYLISTS[basePlaylist] || PLAYLISTS['ai-now'];
   } else if (dimensions.isPortrait) {
-    return PLAYLISTS['ai-now-podcast'];
+    return PLAYLISTS[`${basePlaylist}-podcast`] || PLAYLISTS['ai-now-podcast'];
   } else {
-    // Square videos default to AI-Now
-    return PLAYLISTS['ai-now'];
+    // Square videos default to base playlist
+    return PLAYLISTS[basePlaylist] || PLAYLISTS['ai-now'];
   }
 }
 
@@ -230,8 +243,12 @@ async function uploadToYouTube(videoPath, metadata) {
 }
 
 // Generate metadata for AI-Now videos
-async function generateMetadata(filename, contentType = 'premium', videoPath = null) {
-  const baseTitle = 'AI Now';
+async function generateMetadata(filename, contentType = 'premium', videoPath = null, brand = 'ai-now') {
+  // Format brand name for display (e.g., 'ai-now-educate' -> 'AI Now Educate')
+  const displayBrand = brand.split('-').map(word =>
+    word.charAt(0).toUpperCase() + word.slice(1)
+  ).join(' ');
+
   const date = new Date().toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -240,42 +257,42 @@ async function generateMetadata(filename, contentType = 'premium', videoPath = n
 
   // Get video dimensions if path provided
   const dimensions = videoPath ? await getVideoDimensions(videoPath) : null;
-  const playlistId = getPlaylistForVideo(dimensions, contentType);
+  const playlistId = getPlaylistForVideo(dimensions, contentType, brand);
 
   let title, description, tags, thumbnailPath;
 
   if (contentType === 'premium') {
     if (dimensions?.isLandscape) {
-      // Desktop Landscape - AI Now playlist
-      title = `${baseTitle} - Premium Episode | ${date}`;
+      // Desktop Landscape - base playlist
+      title = `${displayBrand} - Premium Episode | ${date}`;
       thumbnailPath = './v2u-premium.jpg';
     } else if (dimensions?.isPortrait) {
-      // Mobile Portrait - AI Now Podcast playlist
-      title = `${baseTitle} - Premium Episode | ${date}`;
+      // Mobile Portrait - podcast playlist
+      title = `${displayBrand} - Premium Episode | ${date}`;
       thumbnailPath = './v2u-mobile-premium.jpg'; // Different thumbnail for mobile
     } else {
       // Unknown format - default to desktop
-      title = `${baseTitle} - Premium Episode | ${date}`;
+      title = `${displayBrand} - Premium Episode | ${date}`;
       thumbnailPath = './v2u-premium.jpg';
     }
 
-    description = `🔒 Premium AI Now episode featuring the latest developments in artificial intelligence and machine learning.
+    description = `🔒 Premium ${displayBrand} episode featuring the latest developments in artificial intelligence and machine learning.
 
 Subscribe for more cutting-edge AI content!
 
-#AINow #ArtificialIntelligence #MachineLearning #TechNews #AI
+#${brand.replace(/-/g, '')} #ArtificialIntelligence #MachineLearning #TechNews #AI
 
 📧 Contact: [Your contact info]
 🌐 Website: [Your website]`;
 
     tags = [
       'AI', 'Artificial Intelligence', 'Machine Learning', 'AI News',
-      'Technology', 'Tech News', 'Premium Content', 'AI Now',
+      'Technology', 'Tech News', 'Premium Content', displayBrand,
       'Deep Learning', 'Neural Networks', 'AI Research'
     ];
   } else {
     // Standard content
-    title = `${baseTitle} - ${date}`;
+    title = `${displayBrand} - ${date}`;
 
     if (dimensions?.isPortrait) {
       thumbnailPath = './v2u-mobile-standard.jpg'; // Mobile thumbnail
@@ -285,13 +302,13 @@ Subscribe for more cutting-edge AI content!
 
     description = `Latest updates in artificial intelligence and emerging technologies.
 
-#AINow #ArtificialIntelligence #MachineLearning #TechNews
+#${brand.replace(/-/g, '')} #ArtificialIntelligence #MachineLearning #TechNews
 
 Subscribe for daily AI updates!`;
 
     tags = [
       'AI', 'Artificial Intelligence', 'Machine Learning', 'AI News',
-      'Technology', 'Tech News', 'AI Now'
+      'Technology', 'Tech News', displayBrand
     ];
   }
 
@@ -310,12 +327,14 @@ Subscribe for daily AI updates!`;
 // Main function for CLI usage
 async function main() {
   if (process.argv.length < 3) {
-    console.log('Usage: node youtube-upload.js <video-file-path> [premium|standard]');
+    console.log('Usage: node youtube-upload.js <video-file-path> [premium|standard] [brand]');
+    console.log('Brands: ai-now, ai-now-educate, ai-now-commercial, ai-now-conceptual');
     process.exit(1);
   }
 
   const videoPath = process.argv[2];
   const contentType = process.argv[3] || 'premium';
+  const brand = process.argv[4] || 'ai-now';
 
   if (!fs.existsSync(videoPath)) {
     console.error('❌ Video file not found:', videoPath);
@@ -323,12 +342,13 @@ async function main() {
   }
 
   const filename = path.basename(videoPath);
-  const metadata = await generateMetadata(filename, contentType, videoPath);
+  const metadata = await generateMetadata(filename, contentType, videoPath, brand);
 
   console.log(`📹 Uploading: ${filename}`);
   console.log(`🏷️  Title: ${metadata.title}`);
   console.log(`🔒 Privacy: ${metadata.privacyStatus}`);
   console.log(`📋 Playlist: ${metadata.playlistId}`);
+  console.log(`🏢 Brand: ${brand}`);
 
   if (metadata.dimensions) {
     console.log(`📐 Format: ${metadata.dimensions.format} (${metadata.dimensions.width}x${metadata.dimensions.height})`);

@@ -166,9 +166,23 @@ The system automatically publishes videos to YouTube with format-specific playli
    }
    ```
 
-3. **First Upload** requires browser authorization
+### Supported Brands
+- **AI-Now**: Main brand (default)
+- **AI-Now-Educate**: Educational content
+- **AI-Now-Commercial**: Commercial content
+- **AI-Now-Conceptual**: Conceptual content
 
-## Development
+### Brand Detection
+The system automatically detects brands from:
+- **Filename**: Include "educate", "commercial", or "conceptual" in the filename
+- **Directory**: Brand-specific subdirectories (future enhancement)
+
+### Manual Upload
+```bash
+# Upload with specific brand
+node youtube-upload.js video.mp4 premium ai-now-educate
+node youtube-upload.js video.mp4 standard ai-now-commercial
+```
 
 ### Adding New Sources
 ```bash

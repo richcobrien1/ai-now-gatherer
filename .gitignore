@@ -91,9 +91,9 @@ jspm_packages/
 !.dev.vars.example
 .wrangler/
 
-# AI-Now generated content (don't commit downloaded articles)
-ai-now/source/
-ai-now/batches/
+# YouTube API credentials (contains secrets)
+youtube-credentials.json
+youtube-token.json
 
 # Video files (too large for Git)
 *.mp4

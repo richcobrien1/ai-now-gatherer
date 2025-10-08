@@ -15,6 +15,24 @@ const UPLOAD_SCRIPTS = {
   standard: './up-m.sh'
 };
 
+// Brand detection from filename or path
+function detectBrand(filename, dirPath) {
+  const lowerFilename = filename.toLowerCase();
+  const lowerPath = dirPath.toLowerCase();
+
+  // Check filename for brand indicators
+  if (lowerFilename.includes('educate') || lowerPath.includes('educate')) {
+    return 'ai-now-educate';
+  } else if (lowerFilename.includes('commercial') || lowerPath.includes('commercial')) {
+    return 'ai-now-commercial';
+  } else if (lowerFilename.includes('conceptual') || lowerPath.includes('conceptual')) {
+    return 'ai-now-conceptual';
+  }
+
+  // Default to ai-now
+  return 'ai-now';
+}
+
 // Ensure directories exist
 Object.values(WATCH_DIRS).forEach(dir => {
   if (!fs.existsSync(dir)) {
@@ -38,13 +56,13 @@ function isVideoFile(filename) {
 }
 
 // Upload file using appropriate script
-async function uploadFile(filePath, contentType) {
+async function uploadFile(filePath, contentType, brand = 'ai-now') {
   try {
     const script = UPLOAD_SCRIPTS[contentType];
     const command = `"${script}" "${filePath}"`;
     const filename = path.basename(filePath);
 
-    console.log(`🚀 Uploading ${contentType} video to R2: ${filename}`);
+    console.log(`🚀 Uploading ${contentType} video to R2: ${filename} (Brand: ${brand})`);
 
     // Execute R2 upload
     const { stdout } = await new Promise((resolve, reject) => {
@@ -77,7 +95,7 @@ async function uploadFile(filePath, contentType) {
 
     // Upload to YouTube (asynchronous, don't wait for completion)
     console.log(`🎥 Starting YouTube upload for ${contentType} video...`);
-    const metadata = await generateMetadata(filename, contentType, processedPath);
+    const metadata = await generateMetadata(filename, contentType, processedPath, brand);
 
     uploadToYouTube(processedPath, metadata)
       .then((result) => {
@@ -90,7 +108,7 @@ async function uploadFile(filePath, contentType) {
       })
       .catch((error) => {
         console.error(`❌ YouTube upload failed: ${error.message}`);
-        console.log(`💡 You can manually upload later: node youtube-upload.js "${processedPath}" ${contentType}`);
+        console.log(`💡 You can manually upload later: node youtube-upload.js "${processedPath}" ${contentType} ${brand}`);
       });
 
     return stdout;
@@ -115,12 +133,15 @@ function watchDirectory(dirPath, contentType) {
       if (err || !stats.isFile()) return;
       if (!isVideoFile(filename)) return;
 
-      console.log(`📹 New ${contentType} video detected: ${filename}`);
+      // Detect brand from filename or path
+      const brand = detectBrand(filename, dirPath);
+
+      console.log(`📹 New ${contentType} video detected: ${filename} (Brand: ${brand})`);
 
       // Wait a bit for file to be fully written
       setTimeout(async () => {
         try {
-          await uploadFile(filePath, contentType);
+          await uploadFile(filePath, contentType, brand);
         } catch (err) {
           console.error(`Upload error: ${err.message}`);
         }
