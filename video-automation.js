@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
+const { uploadToYouTube, generateMetadata } = require('./youtube-upload');
 
 // Configuration
 const WATCH_DIRS = {
@@ -37,38 +38,67 @@ function isVideoFile(filename) {
 }
 
 // Upload file using appropriate script
-function uploadFile(filePath, contentType) {
-  return new Promise((resolve, reject) => {
+async function uploadFile(filePath, contentType) {
+  try {
     const script = UPLOAD_SCRIPTS[contentType];
     const command = `"${script}" "${filePath}"`;
+    const filename = path.basename(filePath);
 
-    console.log(`🚀 Uploading ${contentType} video: ${path.basename(filePath)}`);
+    console.log(`🚀 Uploading ${contentType} video to R2: ${filename}`);
 
-    exec(command, (error, stdout, stderr) => {
-      if (error) {
-        console.error(`❌ Upload failed: ${error.message}`);
-        reject(error);
-        return;
-      }
+    // Execute R2 upload
+    const { stdout } = await new Promise((resolve, reject) => {
+      exec(command, (error, stdout, stderr) => {
+        if (error) {
+          console.error(`❌ R2 Upload failed: ${error.message}`);
+          reject(error);
+          return;
+        }
+        resolve({ stdout, stderr });
+      });
+    });
 
-      console.log(`✅ Upload successful!`);
-      if (stdout) console.log(stdout);
+    console.log(`✅ R2 Upload successful!`);
+    if (stdout) console.log(stdout);
 
-      // Move file to processed directory
-      const filename = path.basename(filePath);
-      const processedPath = path.join(PROCESSED_DIR, `${Date.now()}-${filename}`);
-
+    // Move file to processed directory
+    const processedPath = path.join(PROCESSED_DIR, `${Date.now()}-${filename}`);
+    await new Promise((resolve, reject) => {
       fs.rename(filePath, processedPath, (err) => {
         if (err) {
           console.error(`⚠️  Could not move file to processed: ${err.message}`);
+          reject(err);
         } else {
           console.log(`📁 Moved to processed: ${filename}`);
+          resolve();
         }
       });
-
-      resolve(stdout);
     });
-  });
+
+    // Upload to YouTube (asynchronous, don't wait for completion)
+    console.log(`🎥 Starting YouTube upload for ${contentType} video...`);
+    const metadata = await generateMetadata(filename, contentType, processedPath);
+
+    uploadToYouTube(processedPath, metadata)
+      .then((result) => {
+        console.log(`✅ YouTube upload completed!`);
+        console.log(`🔗 YouTube URL: ${result.videoUrl}`);
+        console.log(`🆔 Video ID: ${result.videoId}`);
+        if (result.dimensions) {
+          console.log(`📐 Format: ${result.dimensions.format} (${result.dimensions.width}x${result.dimensions.height})`);
+        }
+      })
+      .catch((error) => {
+        console.error(`❌ YouTube upload failed: ${error.message}`);
+        console.log(`💡 You can manually upload later: node youtube-upload.js "${processedPath}" ${contentType}`);
+      });
+
+    return stdout;
+
+  } catch (error) {
+    console.error(`❌ Upload process failed: ${error.message}`);
+    throw error;
+  }
 }
 
 // Watch directory for new files
@@ -88,10 +118,12 @@ function watchDirectory(dirPath, contentType) {
       console.log(`📹 New ${contentType} video detected: ${filename}`);
 
       // Wait a bit for file to be fully written
-      setTimeout(() => {
-        uploadFile(filePath, contentType).catch(err => {
+      setTimeout(async () => {
+        try {
+          await uploadFile(filePath, contentType);
+        } catch (err) {
           console.error(`Upload error: ${err.message}`);
-        });
+        }
       }, 2000);
     });
   });

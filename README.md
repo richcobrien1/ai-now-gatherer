@@ -4,10 +4,11 @@ An automated content gathering and video publishing system for AI-Now episodes.
 
 ## Features
 
-### 🎬 Video Automation
-- **Smart Format Detection**: Automatically detects 16:9 (desktop) vs 9:16 (mobile) video formats
+## 🎬 Video Automation
+- **Smart Format Detection**: Automatically detects 16:9 (desktop/landscape) vs 9:16 (mobile/portrait) video formats
 - **Category-Based Upload**: Uses different scripts for Premium vs Standard content
 - **R2 Storage Integration**: Uploads videos to Cloudflare R2 with proper metadata
+- **YouTube Publishing**: Automatically publishes to correct playlists based on format
 - **Duplicate Prevention**: Avoids re-uploading existing videos
 
 ### 📰 Content Gathering
@@ -134,6 +135,38 @@ node admin-server.js
 - **Formats**: Desktop (16:9), Mobile (9:16)
 - **Upload Script**: `up-m.sh`
 - **Thumbnail**: `v2u-standard.jpg`
+
+## 📺 YouTube Publishing
+
+The system automatically publishes videos to YouTube with format-specific playlists:
+
+### Desktop Landscape Videos (16:9)
+- **Playlist**: AI-Now
+- **Thumbnail**: `v2u-premium.jpg` (premium) or `v2u-standard.jpg` (standard)
+- **Upload First**: Desktop videos are uploaded first
+
+### Mobile Portrait Videos (9:16)
+- **Playlist**: AI-Now Podcast
+- **Thumbnail**: `v2u-mobile-premium.jpg` (premium) or `v2u-mobile-standard.jpg` (standard)
+- **Reuse Settings**: Mobile videos reuse desktop video settings but change playlist
+
+### YouTube Setup
+1. **Get API Credentials**:
+   ```bash
+   ./setup-youtube.sh
+   ```
+
+2. **Update Playlist IDs** in `youtube-credentials.json`:
+   ```json
+   {
+     "playlists": {
+       "ai-now": "YOUR_AI_NOW_PLAYLIST_ID",
+       "ai-now-podcast": "YOUR_AI_NOW_PODCAST_ID"
+     }
+   }
+   ```
+
+3. **First Upload** requires browser authorization
 
 ## Development
 

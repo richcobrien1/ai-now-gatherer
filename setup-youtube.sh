@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "🎬 YouTube API Setup for AI-Now Gatherer"
+echo "=========================================="
+echo ""
+
+# Check if credentials file exists
+if [ -f "youtube-credentials.json" ]; then
+    echo "✅ YouTube credentials file found!"
+    echo ""
+    echo "To set up YouTube API access:"
+    echo "1. Go to: https://console.developers.google.com/"
+    echo "2. Create or select a project"
+    echo "3. Enable the YouTube Data API v3"
+    echo "4. Create OAuth 2.0 credentials"
+    echo "5. Download the credentials JSON and replace youtube-credentials.json"
+    echo ""
+    echo "Then run: node youtube-upload.js <video-file> [premium|standard]"
+    echo "  (First run will prompt for authorization)"
+    exit 0
+fi
+
+echo "❌ YouTube credentials not found!"
+echo ""
+echo "📝 Setup Instructions:"
+echo ""
+echo "1. Go to Google Cloud Console:"
+echo "   https://console.developers.google.com/"
+echo ""
+echo "2. Create a new project or select existing one"
+echo ""
+echo "3. Enable APIs:"
+echo "   - Search for 'YouTube Data API v3'"
+echo "   - Click 'Enable'"
+echo ""
+echo "4. Create Credentials:"
+echo "   - Go to 'Credentials' in the left menu"
+echo "   - Click 'Create Credentials' → 'OAuth 2.0 Client IDs'"
+echo "   - Choose 'Desktop application'"
+echo "   - Download the JSON file"
+echo ""
+echo "5. Save the downloaded JSON as: youtube-credentials.json"
+echo ""
+echo "6. First upload will require browser authorization"
+echo ""
+echo "📄 Template created: youtube-credentials.json"
+echo "   Replace with your actual Google API credentials"
+echo ""
+echo "🔗 Quick start guide: https://developers.google.com/youtube/v3/quickstart/nodejs"
