@@ -1,8 +1,5 @@
-const { google } = require('googleapis');
-const fs = require('fs');
-const path = require('path');
-const readline = require('readline');
-const { exec } = require('child_process');
+const http = require('http');
+const url = require('url');
 
 // YouTube API configuration
 const SCOPES = ['https://www.googleapis.com/auth/youtube.upload'];
@@ -111,33 +108,62 @@ function createOAuth2Client(credentials) {
 
 // Get and store new token after prompting for user authorization
 function getNewToken(oAuth2Client) {
-  const authUrl = oAuth2Client.generateAuthUrl({
-    access_type: 'offline',
-    scope: SCOPES,
-  });
-
-  console.log('🔗 Authorize this app by visiting this url:', authUrl);
-
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-
   return new Promise((resolve, reject) => {
-    rl.question('Enter the code from that page here: ', (code) => {
-      rl.close();
-      oAuth2Client.getToken(code, (err, token) => {
-        if (err) {
-          console.error('❌ Error retrieving access token', err);
-          reject(err);
-          return;
+    const authUrl = oAuth2Client.generateAuthUrl({
+      access_type: 'offline',
+      scope: SCOPES,
+    });
+
+    console.log('🔗 Authorize this app by visiting this url:', authUrl);
+    console.log('📱 The page will redirect to localhost - allow it if prompted by your browser');
+
+    const server = http.createServer(async (req, res) => {
+      try {
+        const qs = new url.URL(req.url, 'http://localhost:3000').searchParams;
+        const code = qs.get('code');
+
+        if (code) {
+          console.log('✅ Authorization code received, exchanging for token...');
+
+          res.writeHead(200, { 'Content-Type': 'text/html' });
+          res.end('<h1>Authorization successful!</h1><p>You can close this window now.</p>');
+
+          server.close();
+
+          oAuth2Client.getToken(code, (err, token) => {
+            if (err) {
+              console.error('❌ Error retrieving access token', err);
+              reject(err);
+              return;
+            }
+            oAuth2Client.setCredentials(token);
+            // Store the token to disk for later program executions
+            fs.writeFileSync(TOKEN_PATH, JSON.stringify(token));
+            console.log('✅ Token stored to', TOKEN_PATH);
+            resolve(oAuth2Client);
+          });
+        } else {
+          res.writeHead(400, { 'Content-Type': 'text/html' });
+          res.end('<h1>Authorization failed</h1><p>No code received.</p>');
+          server.close();
+          reject(new Error('No authorization code received'));
         }
-        oAuth2Client.setCredentials(token);
-        // Store the token to disk for later program executions
-        fs.writeFileSync(TOKEN_PATH, JSON.stringify(token));
-        console.log('✅ Token stored to', TOKEN_PATH);
-        resolve(oAuth2Client);
-      });
+      } catch (error) {
+        res.writeHead(500, { 'Content-Type': 'text/html' });
+        res.end('<h1>Server error</h1>');
+        server.close();
+        reject(error);
+      }
+    });
+
+    server.listen(3000, () => {
+      console.log('🌐 Local server listening on http://localhost:3000');
+      console.log('⏳ Waiting for authorization...');
+    });
+
+    server.on('error', (err) => {
+      console.error('❌ Server error:', err);
+      reject(err);
     });
   });
 }

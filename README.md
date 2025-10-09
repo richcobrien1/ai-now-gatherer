@@ -2,6 +2,29 @@
 
 An automated content gathering and video publishing system for AI-Now episodes.
 
+## 🚀 Complete Automation Workflow
+
+**One-command multi-platform publishing:**
+
+```bash
+# Full automation: R2 upload + YouTube + Twitter + LinkedIn
+./complete-workflow.sh "premium/your-video.mp4" premium ai-now --auto-upload --twitter --linkedin
+
+# Manual YouTube upload + social media
+./complete-workflow.sh "premium/your-video.mp4" premium ai-now --twitter --linkedin
+
+# Just YouTube automation
+./complete-workflow.sh "premium/your-video.mp4" premium ai-now --auto-upload
+```
+
+**What it does:**
+- ✅ Uploads to Cloudflare R2 storage
+- ✅ Generates brand-specific metadata and titles
+- ✅ Provides YouTube upload instructions or automates browser upload
+- ✅ Posts to Twitter with branded content
+- ✅ Posts to LinkedIn with professional messaging
+- ✅ Handles missing credentials gracefully
+
 ## Features
 
 ## 🎬 Video Automation
@@ -81,6 +104,85 @@ ai-now-gatherer/
 
 ## Usage
 
+### 🚀 Complete Workflow (Recommended)
+
+```bash
+# Process a new video with full automation
+./complete-workflow.sh "premium/new-video.mp4" premium ai-now --auto-upload --twitter --linkedin
+
+# Process already uploaded video (skip R2 upload)
+./complete-workflow.sh "processed/existing-video.mp4" premium ai-now --twitter --linkedin
+
+# Just generate YouTube instructions
+./complete-workflow.sh "processed/video.mp4" premium ai-now-educate
+```
+
+**Supported brands:** `ai-now`, `ai-now-educate`, `ai-now-commercial`, `ai-now-conceptual`
+
+**Content types:** `premium`, `standard`
+
+**Flags:**
+- `--auto-upload`: Open YouTube Studio with browser automation
+- `--twitter`: Post to Twitter (requires API setup)
+- `--linkedin`: Post to LinkedIn (requires API setup)
+
+### Social Media Setup
+
+#### Twitter Setup
+```bash
+./setup-twitter.sh
+# Edit twitter-config.json with your API keys
+node twitter-poster.js auth
+node twitter-poster.js test
+```
+
+#### LinkedIn Setup
+```bash
+./setup-linkedin.sh
+# Edit linkedin-config.json with your app credentials
+node linkedin-poster.js auth
+node linkedin-poster.js test
+```
+
+### Legacy Scripts (Still Available)
+
+## � LinkedIn Integration
+
+### Features
+- **Professional Posting**: Post AI content to LinkedIn network
+- **Brand-Specific Content**: Professional messaging per brand
+- **Rich Metadata**: Includes title, description, and industry hashtags
+- **OAuth 2.0**: Secure authentication with LinkedIn API
+
+### Setup Steps
+1. **Get LinkedIn App Credentials**:
+   - Go to https://developer.linkedin.com/
+   - Create an app or use existing one
+   - Get Client ID and Client Secret
+   - Add redirect URI: `http://localhost:3003/callback`
+
+2. **Configure**:
+   ```bash
+   ./setup-linkedin.sh
+   # Edit linkedin-config.json with your keys
+   ```
+
+3. **Authenticate**:
+   ```bash
+   node linkedin-poster.js auth
+   ```
+
+4. **Test**:
+   ```bash
+   node linkedin-poster.js test
+   ```
+
+### Professional Posting
+- **AI-Now**: `#AINow #TechTrends #DigitalTransformation`
+- **AI-Now-Educate**: `#AIEducation #ProfessionalDevelopment #Learning`
+- **AI-Now-Commercial**: `#AICommercial #BusinessIntelligence #EnterpriseAI`
+- **AI-Now-Conceptual**: `#AIResearch #FutureOfWork #EmergingTech`
+
 ### Content Gathering
 ```bash
 # Download from all sources
@@ -95,10 +197,11 @@ node content-downloader.js add newsfeed https://example.com
 
 ### Video Automation
 ```bash
-# Start video watcher
+# Start video watcher (when API access is available)
 node video-automation.js
 
-# Drop videos in category folders and they'll auto-upload
+# Manual workflow (current recommended approach)
+./automate-workflow.sh <video-path> [premium|standard] [brand]
 ```
 
 ### Web Admin
@@ -136,21 +239,40 @@ node admin-server.js
 - **Upload Script**: `up-m.sh`
 - **Thumbnail**: `v2u-standard.jpg`
 
-## 📺 YouTube Publishing
+## 📺 YouTube Integration Status
+
+### Current Status (October 2025)
+- ✅ **Cloudflare R2 Upload**: Fully automated
+- ✅ **Metadata Generation**: Complete with brand-specific titles and descriptions
+- ✅ **Playlist Management**: Configured for multi-brand support
+- ⚠️ **YouTube API Upload**: Blocked by Google verification requirements
+- ✅ **Manual Workflow**: Streamlined with `./automate-workflow.sh`
+
+### YouTube API Access
+Google requires app verification for the `youtube.upload` scope. The app is currently in "Testing" mode.
+
+**To enable full automation:**
+1. Wait for Google to review and approve the OAuth consent screen
+2. Or add approved test users in Google Cloud Console
+3. The API credentials are ready and scripts are prepared
+
+**Current workaround:** Use `./automate-workflow.sh` for complete R2 upload + YouTube instructions.
+
+### YouTube Publishing
 
 The system automatically publishes videos to YouTube with format-specific playlists:
 
-### Desktop Landscape Videos (16:9)
-- **Playlist**: AI-Now
+#### Desktop Landscape Videos (16:9)
+- **Playlist**: AI-Now Desktop
 - **Thumbnail**: `v2u-premium.jpg` (premium) or `v2u-standard.jpg` (standard)
 - **Upload First**: Desktop videos are uploaded first
 
-### Mobile Portrait Videos (9:16)
+#### Mobile Portrait Videos (9:16)
 - **Playlist**: AI-Now Podcast
 - **Thumbnail**: `v2u-mobile-premium.jpg` (premium) or `v2u-mobile-standard.jpg` (standard)
 - **Reuse Settings**: Mobile videos reuse desktop video settings but change playlist
 
-### YouTube Setup
+#### YouTube Setup (Future)
 1. **Get API Credentials**:
    ```bash
    ./setup-youtube.sh
