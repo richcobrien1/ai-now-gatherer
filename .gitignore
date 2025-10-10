@@ -95,6 +95,10 @@ jspm_packages/
 youtube-credentials.json
 youtube-token.json
 
+# Social Media API credentials (contains secrets)
+twitter-config.json
+linkedin-config.json
+
 # Video files (too large for Git)
 *.mp4
 *.mov

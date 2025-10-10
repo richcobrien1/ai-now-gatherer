@@ -30,11 +30,19 @@ AUTO_UPLOAD="${4:-}"
 TWITTER_POST="${5:-}"
 LINKEDIN_POST="${6:-}"
 
-# Validate video file exists
-if [ ! -f "$VIDEO_PATH" ]; then
-    echo -e "${RED}❌ Error: Video file not found: $VIDEO_PATH${NC}"
-    exit 1
-fi
+# Validate brand and content type compatibility
+case $BRAND in
+    "ai-now"|"ai-now-educate"|"ai-now-commercial"|"ai-now-conceptual")
+        # These brands are premium-only
+        if [ "$CONTENT_TYPE" != "premium" ]; then
+            echo -e "${YELLOW}⚠️  Brand '$BRAND' is premium-only. Automatically setting content type to 'premium'.${NC}"
+            CONTENT_TYPE="premium"
+        fi
+        ;;
+    *)
+        # Other brands can be premium or standard
+        ;;
+esac
 
 echo -e "${BLUE}📹 Processing video: $VIDEO_PATH${NC}"
 echo -e "${BLUE}🏷️  Content type: $CONTENT_TYPE${NC}"
@@ -89,7 +97,30 @@ if [ "$AUTO_UPLOAD" = "--auto-upload" ]; then
 
     # Generate metadata for automated upload
     DATE=$(date +"%B %d, %Y")
-    DISPLAY_BRAND="AI Now"
+    
+    # Set brand-specific display name and hashtags
+    case $BRAND in
+        "ai-now")
+            DISPLAY_BRAND="AI Now"
+            BRAND_HASHTAGS="#AINow #TechTrends #DigitalTransformation"
+            ;;
+        "ai-now-educate")
+            DISPLAY_BRAND="AI Now Educate"
+            BRAND_HASHTAGS="#AINowEducate #AIEducation #ProfessionalDevelopment"
+            ;;
+        "ai-now-commercial")
+            DISPLAY_BRAND="AI Now Commercial"
+            BRAND_HASHTAGS="#AINowCommercial #AICommercial #BusinessIntelligence"
+            ;;
+        "ai-now-conceptual")
+            DISPLAY_BRAND="AI Now Conceptual"
+            BRAND_HASHTAGS="#AINowConceptual #AIResearch #FutureOfWork"
+            ;;
+        *)
+            DISPLAY_BRAND="AI Now"
+            BRAND_HASHTAGS="#AINow #ArtificialIntelligence #MachineLearning"
+            ;;
+    esac
 
     if [ "$CONTENT_TYPE" = "premium" ]; then
         TITLE="$DISPLAY_BRAND - Premium Episode | $DATE"
@@ -97,7 +128,7 @@ if [ "$AUTO_UPLOAD" = "--auto-upload" ]; then
 
 Subscribe for more cutting-edge AI content!
 
-#$BRAND #ArtificialIntelligence #MachineLearning #TechNews #AI
+$BRAND_HASHTAGS #ArtificialIntelligence #MachineLearning #TechNews #AI
 
 📧 Contact: [Your contact info]
 🌐 Website: [Your website]"
@@ -107,48 +138,24 @@ Subscribe for more cutting-edge AI content!
         TITLE="$DISPLAY_BRAND - $DATE"
         DESCRIPTION="Latest updates in artificial intelligence and emerging technologies.
 
-#$BRAND #ArtificialIntelligence #MachineLearning #TechNews
+$BRAND_HASHTAGS #ArtificialIntelligence #MachineLearning #TechNews
 
 Subscribe for daily AI updates!"
         PRIVACY="public"
         THUMBNAIL="./v2u-standard.jpg"
     fi
 
-    # Create a temporary upload script
-    CURRENT_DIR=$(pwd)
-    UPLOAD_SCRIPT=$(mktemp)
-    cat > "$UPLOAD_SCRIPT" << EOF
-const path = require('path');
-process.chdir(path.join('$CURRENT_DIR', 'app'));
-const { YouTubeWebUploader } = require('./youtube-web-upload');
+    # Run YouTube uploader directly
+    echo -e "${BLUE}🎬 Opening YouTube Studio for upload...${NC}"
+    echo -e "${BLUE}📋 Please complete the upload manually with these details:${NC}"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo -e "${BLUE}Title:${NC} $TITLE"
+    echo -e "${BLUE}Description:${NC} $DESCRIPTION"
+    echo -e "${BLUE}Privacy:${NC} $PRIVACY"
+    echo -e "${BLUE}Thumbnail:${NC} $THUMBNAIL"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-async function autoUpload() {
-  const uploader = new YouTubeWebUploader();
-
-  try {
-    await uploader.initialize();
-
-    // For now, just open studio - you can enhance this with full automation
-    console.log('🎬 Opening YouTube Studio for upload...');
-    console.log('📋 Please complete the upload manually with these details:');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('Title:', \`$TITLE\`);
-    console.log('Description:', \`$DESCRIPTION\`);
-    console.log('Privacy:', '$PRIVACY');
-    console.log('Thumbnail:', '$THUMBNAIL');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-
-    await uploader.openStudio();
-
-  } catch (error) {
-    console.error('❌ Upload failed:', error.message);
-  }
-}
-
-autoUpload();
-EOF
-
-    cd app && node "$UPLOAD_SCRIPT"
+    cd app && node youtube-web-upload.js
     rm "$UPLOAD_SCRIPT"
 
 else
@@ -157,7 +164,30 @@ else
 
     # Generate metadata suggestions
     DATE=$(date +"%B %d, %Y")
-    DISPLAY_BRAND="AI Now"
+    
+    # Set brand-specific display name and hashtags
+    case $BRAND in
+        "ai-now")
+            DISPLAY_BRAND="AI Now"
+            BRAND_HASHTAGS="#AINow #TechTrends #DigitalTransformation"
+            ;;
+        "ai-now-educate")
+            DISPLAY_BRAND="AI Now Educate"
+            BRAND_HASHTAGS="#AINowEducate #AIEducation #ProfessionalDevelopment"
+            ;;
+        "ai-now-commercial")
+            DISPLAY_BRAND="AI Now Commercial"
+            BRAND_HASHTAGS="#AINowCommercial #AICommercial #BusinessIntelligence"
+            ;;
+        "ai-now-conceptual")
+            DISPLAY_BRAND="AI Now Conceptual"
+            BRAND_HASHTAGS="#AINowConceptual #AIResearch #FutureOfWork"
+            ;;
+        *)
+            DISPLAY_BRAND="AI Now"
+            BRAND_HASHTAGS="#AINow #ArtificialIntelligence #MachineLearning"
+            ;;
+    esac
 
     if [ "$CONTENT_TYPE" = "premium" ]; then
         TITLE="$DISPLAY_BRAND - Premium Episode | $DATE"
@@ -165,7 +195,7 @@ else
 
 Subscribe for more cutting-edge AI content!
 
-#$BRAND #ArtificialIntelligence #MachineLearning #TechNews #AI
+$BRAND_HASHTAGS #ArtificialIntelligence #MachineLearning #TechNews #AI
 
 📧 Contact: [Your contact info]
 🌐 Website: [Your website]"
@@ -175,7 +205,7 @@ Subscribe for more cutting-edge AI content!
         TITLE="$DISPLAY_BRAND - $DATE"
         DESCRIPTION="Latest updates in artificial intelligence and emerging technologies.
 
-#$BRAND #ArtificialIntelligence #MachineLearning #TechNews
+$BRAND_HASHTAGS #ArtificialIntelligence #MachineLearning #TechNews
 
 Subscribe for daily AI updates!"
         PRIVACY="Public"
@@ -195,21 +225,24 @@ Subscribe for daily AI updates!"
     # Determine playlist based on brand and content type
     case $BRAND in
         "ai-now")
-            if [ "$CONTENT_TYPE" = "premium" ]; then
-                PLAYLIST="AI-Now Desktop Landscape"
-            else
-                PLAYLIST="AI-Now Desktop Landscape (Standard)"
-            fi
+            PLAYLIST="AI-Now Desktop Landscape"
             ;;
         "ai-now-educate")
-            if [ "$CONTENT_TYPE" = "premium" ]; then
-                PLAYLIST="AI-Now-Educate Desktop Landscape"
-            else
-                PLAYLIST="AI-Now-Educate Desktop Landscape (Standard)"
-            fi
+            PLAYLIST="AI-Now-Educate Desktop Landscape"
+            ;;
+        "ai-now-commercial")
+            PLAYLIST="AI-Now-Commercial Desktop Landscape"
+            ;;
+        "ai-now-conceptual")
+            PLAYLIST="AI-Now-Conceptual Desktop Landscape"
             ;;
         *)
-            PLAYLIST="Default Playlist"
+            # Other brands can have standard versions
+            if [ "$CONTENT_TYPE" = "premium" ]; then
+                PLAYLIST="Default Premium Playlist"
+            else
+                PLAYLIST="Default Standard Playlist"
+            fi
             ;;
     esac
 
