@@ -35,66 +35,41 @@
   </div>
 
   <script>
-    const CLIENT_ID = `${CLIENT_ID}`;
-    const CLIENT_SECRET = `${CLIENT_SECRET}`;
-    const REDIRECT_URI = `${REDIRECT_URI}`;
-    
-    function authorize() {
+    async function getConfig() {
+      try {
+        const r = await fetch('/api/linkedin/config');
+        return await r.json();
+      } catch (e) {
+        return { client_id: '', redirect_uri: location.origin + '/linkedin-callback' };
+      }
+    }
+
+    async function authorize() {
+      const cfg = await getConfig();
       const scope = 'openid profile email w_member_social';
       const state = Math.random().toString(36).substring(7);
-      const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&state=${state}&scope=${encodeURIComponent(scope)}`;
-      
+      const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${cfg.client_id}&redirect_uri=${encodeURIComponent(cfg.redirect_uri)}&state=${state}&scope=${encodeURIComponent(scope)}`;
       window.open(authUrl, '_blank');
       alert('After authorizing, copy the "code" parameter from the URL and paste it in Step 2');
     }
-    
+
     async function getToken() {
       const code = document.getElementById('authCode').value.trim();
-      if (!code) {
-        alert('Please paste the authorization code');
-        return;
-      }
-      
+      if (!code) { alert('Please paste the authorization code'); return; }
       try {
-        const response = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: new URLSearchParams({
-            grant_type: 'authorization_code',
-            code: code,
-            client_id: CLIENT_ID,
-            client_secret: CLIENT_SECRET,
-            redirect_uri: REDIRECT_URI
-          })
-        });
-        
-        const data = await response.json();
-        
-        if (data.access_token) {
-          // Now get the user profile to get URN
-          const profileResponse = await fetch('https://api.linkedin.com/v2/userinfo', {
-            headers: { 'Authorization': `Bearer ${data.access_token}` }
-          });
-          
-          const profile = await profileResponse.json();
-          
-          const output = `Access Token: ${data.access_token}\n\nLinkedIn URN: urn:li:person:${profile.sub}\n\nRun these commands:\nwrangler secret put LINKEDIN_ACCESS_TOKEN --config wrangler-social.toml\nwrangler secret put LINKEDIN_AUTHOR_URN --config wrangler-social.toml`;
-          
+        const r = await fetch('/api/linkedin/exchange', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) });
+        const data = await r.json();
+        if (r.ok) {
+          const output = `Access Token: ${data.access_token || ''}\n\nLinkedIn URN: ${data.urn ? 'urn:li:person:' + data.urn : ''}\n\nRun these commands:\nwrangler secret put LINKEDIN_ACCESS_TOKEN --config wrangler-social.toml\nwrangler secret put LINKEDIN_AUTHOR_URN --config wrangler-social.toml`;
           document.getElementById('output').textContent = output;
           document.getElementById('result').style.display = 'block';
         } else {
           alert('Error: ' + JSON.stringify(data));
         }
-      } catch (error) {
-        alert('Error: ' + error.message);
-      }
+      } catch (e) { alert('Error: ' + e.message); }
     }
-    
-    function copyToClipboard() {
-      const text = document.getElementById('output').textContent;
-      navigator.clipboard.writeText(text);
-      alert('Copied to clipboard!');
-    }
+
+    function copyToClipboard() { const text = document.getElementById('output').textContent; navigator.clipboard.writeText(text); alert('Copied to clipboard!'); }
   </script>
 </body>
 </html>
