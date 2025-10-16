@@ -1,5 +1,5 @@
 {
-  "clientId": "86n4g462pt6dix",
-  "clientSecret": "WPL_AP1.fyL8QCW0XDeM6AsW.Uk6l9Q==",
+  "clientId": "YOUR_LINKEDIN_CLIENT_ID",
+  "clientSecret": "YOUR_LINKEDIN_CLIENT_SECRET",
   "redirectUri": "http://localhost:3003/callback"
 }
