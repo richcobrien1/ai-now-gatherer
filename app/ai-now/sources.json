@@ -1,0 +1,14 @@
+{
+  "newsfeed": [
+    "https://www.rundown.ai/articles",
+    "https://www.artificialintelligence-news.com/artificial-intelligence-news/",
+    "https://techcrunch.com/tag/artificial-intelligence/",
+    "https://venturebeat.com/ai/",
+    "https://www.technologyreview.com/topic/artificial-intelligence/",
+    "https://arstechnica.com/tag/artificial-intelligence/"
+  ],
+  "youtube": [
+    "https://www.youtube.com/feeds/videos.xml?channel_id=UCBp3w7z8yHnRy1MvXcXVZUw",
+    "https://www.youtube.com/results?search_query=AI+News+Today&sp=CAI%253D"
+  ]
+}

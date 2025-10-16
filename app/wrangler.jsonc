@@ -1,0 +1,30 @@
+{
+  "name": "ai-now-news-gatherer",
+  "main": "src/index.ts",
+  "compatibility_date": "2024-01-01",
+  "compatibility_flags": [
+    "global_fetch_strictly_public"
+  ],
+  "assets": {
+    // The path to the directory containing the `index.html` file to be served at `/`
+    "directory": "./public"
+  },
+  "observability": {
+    "enabled": true
+  },
+  "r2_buckets": [
+    {
+      "binding": "R2_SOURCES",
+      "bucket_name": "ai-now-sources"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "NEWS_CACHE",
+      "id": "f437507ee6ba44e0be3aeb66546bb4a9"
+    }
+  ],
+  "vars": {
+    "BASE_URL": "https://v2u.us"
+  }
+}

@@ -1,0 +1,50 @@
+name = "ai-now-news-gatherer"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+# Cron trigger: Run daily at 4 AM
+[triggers]
+crons = ["*/5 * * * *"]
+
+# Assets for serving static files
+[assets]
+directory = "./public"
+
+# Observability
+[observability]
+enabled = true
+
+# R2 Bucket for storing sources
+[[r2_buckets]]
+binding = "R2_SOURCES"
+bucket_name = "ai-now-sources"
+
+# KV for metadata
+[[kv_namespaces]]
+binding = "NEWS_CACHE"
+id = "f437507ee6ba44e0be3aeb66546bb4a9"
+
+[[kv_namespaces]]
+binding = "EPISODE_METADATA"
+id = "8ec5e3e848f24af99888ffca0b703d5e"
+
+[[kv_namespaces]]
+binding = "POST_STATUS"
+id = "a31d3e98127e4f3989850518ce224c4c"
+
+# Environment variables
+[vars]
+BASE_URL = "https://www.v2u.us"
+RESEND_API_KEY = "re_J9APj3YZ_9izCgRPXM9KzcqsqMp2zAVWN"
+YOUTUBE_API_KEY = "AIzaSyD0SuJyjxOAwDFh-hliEn4Vlmw8MP1cM3s"
+YOUTUBE_CHANNEL_ID = "UCmwOvS8rhbbDYojNrar4g4g"
+RUMBLE_API_KEY = "contact_rumble_for_api_access"
+RUMBLE_CHANNEL_ID = "c-7769250"
+SPOTIFY_API_KEY = "your_spotify_client_id"
+VIMEO_ACCESS_TOKEN = "UkRmasLSOLpcnWxuuvqXkXzuTiCBwwS5jvffKJYpSnw/0//qI+bJ+KPYx6Tz/MjeK9Gb13kE3OILQkzuyehRNRGTOuc5UrZBjicDbGFrRk/bv1AgT4VcaAvyMzoJE193"
+ODYSEE_API_KEY = "your_odysee_api_key_here"
+ODYSEE_CHANNEL_ID = "your_odysee_channel_id_here"
+# R2 Upload credentials for video storage
+R2_ACCESS_KEY_ID = "your_r2_access_key_id"
+R2_SECRET_ACCESS_KEY = "your_r2_secret_access_key"
+CLOUDFLARE_ACCOUNT_ID = "your_cloudflare_account_id"
