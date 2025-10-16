@@ -21,16 +21,21 @@ class TwitterPoster {
       // Load configuration
       const config = this.loadConfig();
 
-      // Create OAuth 2.0 app client
+      // Create app client
       this.client = new TwitterApi({
-        clientId: config.apiKey,
-        clientSecret: config.apiSecret,
+        appKey: config.apiKey,
+        appSecret: config.apiSecret,
       });
 
       // Try to load user tokens
       const tokens = this.loadTokens();
-      if (tokens && this.isTokenValid(tokens)) {
-        this.userClient = new TwitterApi(tokens.accessToken);
+      if (tokens) {
+        this.userClient = new TwitterApi({
+          appKey: config.apiKey,
+          appSecret: config.apiSecret,
+          accessToken: tokens.accessToken,
+          accessSecret: tokens.accessSecret,
+        });
         console.log('✅ Twitter client initialized with user authentication');
       } else {
         console.log('⚠️  Twitter client initialized (user authentication needed)');
@@ -40,14 +45,6 @@ class TwitterPoster {
       console.error('❌ Failed to initialize Twitter client:', error.message);
       throw error;
     }
-  }
-
-  /**
-   * Check if stored token is still valid
-   */
-  isTokenValid(tokens) {
-    if (!tokens.expiresAt) return false;
-    return Date.now() < tokens.expiresAt;
   }
 
   /**
@@ -88,50 +85,43 @@ class TwitterPoster {
 
     console.log('🔗 Generating Twitter authorization URL...');
 
-    const authLink = await this.client.generateOAuth2AuthLink('http://localhost:3002/callback', {
-      scope: ['tweet.read', 'tweet.write', 'users.read']
-    });
+    const authLink = await this.client.generateAuthLink('http://localhost:3002/callback');
 
     console.log('\n🔗 Visit this URL to authorize the app:');
     console.log(authLink.url);
-    console.log('\n📝 Copy the authorization code from the callback URL and paste it here.');
-    console.log('   The URL will look like: http://localhost:3002/callback?code=ABC123...\n');
+    console.log('\n📝 Copy the PIN code and paste it here when prompted.\n');
 
     return authLink;
   }
 
   /**
-   * Complete authentication with authorization code
+   * Complete authentication with PIN code
    */
-  async completeAuth(authCode, authLink) {
+  async completeAuth(pinCode, authLink) {
     if (!this.client) await this.initialize();
 
     console.log('🔐 Completing Twitter authentication...');
 
     try {
-      const { client: userClient, accessToken, refreshToken } = await this.client.loginWithOAuth2({
-        code: authCode,
-        codeVerifier: authLink.codeVerifier,
-        redirectUri: 'http://localhost:3002/callback'
-      });
+      const { client: userClient, accessToken, accessSecret } = await this.client.login(pinCode);
 
       const tokens = {
         accessToken,
-        refreshToken,
-        expiresAt: Date.now() + (2 * 60 * 60 * 1000), // 2 hours from now
+        accessSecret,
+        userId: userClient.userId,
+        screenName: userClient.screenName,
       };
 
       this.saveTokens(tokens);
       this.userClient = userClient;
 
       console.log('✅ Twitter authentication successful!');
-      console.log(`🔑 Access token obtained and saved`);
+      console.log(`👤 Logged in as: @${tokens.screenName}`);
 
       return tokens;
 
     } catch (error) {
       console.error('❌ Twitter authentication failed:', error.message);
-      console.error('Full error:', error);
       throw error;
     }
   }
@@ -249,108 +239,6 @@ class TwitterPoster {
       throw error;
     }
   }
-
-  /**
-   * Start local auth server to handle OAuth callback
-   */
-  async startAuthServer() {
-    const http = require('http');
-    const url = require('url');
-
-    return new Promise(async (resolve, reject) => {
-      // Generate auth URL
-      const authLink = await this.generateAuthUrl();
-
-      // Create server
-      const server = http.createServer(async (req, res) => {
-        const parsedUrl = url.parse(req.url, true);
-
-        if (parsedUrl.pathname === '/callback') {
-          const authCode = parsedUrl.query.code;
-
-          if (authCode) {
-            try {
-              // Complete authentication
-              await this.completeAuth(authCode, authLink);
-
-              // Send success response
-              res.writeHead(200, { 'Content-Type': 'text/html' });
-              res.end(`
-                <html>
-                  <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-                    <h1 style="color: #1DA1F2;">✅ Twitter Authentication Successful!</h1>
-                    <p>You can now close this window and return to the terminal.</p>
-                    <p>The authentication tokens have been saved.</p>
-                  </body>
-                </html>
-              `);
-
-              console.log('🎉 Authentication complete! You can now post tweets.');
-              server.close();
-              resolve();
-
-            } catch (error) {
-              res.writeHead(500, { 'Content-Type': 'text/html' });
-              res.end(`
-                <html>
-                  <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-                    <h1 style="color: #E0245E;">❌ Authentication Failed</h1>
-                    <p>${error.message}</p>
-                    <p>Check the terminal for more details.</p>
-                  </body>
-                </html>
-              `);
-              server.close();
-              reject(error);
-            }
-          } else {
-            // Handle error
-            const error = parsedUrl.query.error || 'Unknown error';
-            res.writeHead(400, { 'Content-Type': 'text/html' });
-            res.end(`
-              <html>
-                <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-                  <h1 style="color: #E0245E;">❌ Authentication Error</h1>
-                  <p>${error}</p>
-                </body>
-              </html>
-            `);
-            server.close();
-            reject(new Error(error));
-          }
-        } else {
-          res.writeHead(404);
-          res.end('Not found');
-        }
-      });
-
-      // Start server
-      server.listen(3002, () => {
-        console.log('🌐 Local auth server started on http://localhost:3002');
-        console.log('🔗 Opening browser for Twitter authentication...');
-        console.log('');
-
-        // Try to open browser automatically
-        const { exec } = require('child_process');
-        const command = process.platform === 'win32' ? `start "${authLink.url}"` :
-                       process.platform === 'darwin' ? `open "${authLink.url}"` :
-                       `xdg-open "${authLink.url}"`;
-
-        exec(command, (error) => {
-          if (error) {
-            console.log('📱 Please manually visit this URL in your browser:');
-            console.log(authLink.url);
-          }
-        });
-      });
-
-      // Timeout after 5 minutes
-      setTimeout(() => {
-        server.close();
-        reject(new Error('Authentication timeout - please try again'));
-      }, 5 * 60 * 1000);
-    });
-  }
 }
 
 // CLI Interface for Twitter operations
@@ -367,13 +255,12 @@ async function main() {
     console.log('  test          - Test API connection');
     console.log('  post <json>   - Post a tweet (provide metadata as JSON string)');
     console.log('');
-    console.log('Setup: Create twitter-config.json with your OAuth 2.0 credentials:');
+    console.log('Setup: Create twitter-config.json with your API keys');
+    console.log('Example:');
     console.log('{');
-    console.log('  "apiKey": "your_client_id",');
-    console.log('  "apiSecret": "your_client_secret"');
+    console.log('  "apiKey": "your_api_key",');
+    console.log('  "apiSecret": "your_api_secret"');
     console.log('}');
-    console.log('');
-    console.log('Make sure http://localhost:3002/callback is set as a redirect URI in your Twitter app!');
     return;
   }
 
@@ -383,7 +270,24 @@ async function main() {
     switch (command) {
       case 'auth':
         await twitter.initialize();
-        await twitter.startAuthServer();
+        const authLink = await twitter.generateAuthUrl();
+
+        // Simple PIN input (in production, use proper OAuth flow)
+        const readline = require('readline');
+        const rl = readline.createInterface({
+          input: process.stdin,
+          output: process.stdout
+        });
+
+        rl.question('Enter the PIN code from Twitter: ', async (pin) => {
+          try {
+            await twitter.completeAuth(pin.trim(), authLink);
+            console.log('🎉 Authentication complete! You can now post tweets.');
+          } catch (error) {
+            console.error('Authentication failed:', error.message);
+          }
+          rl.close();
+        });
         break;
 
       case 'test':

@@ -131,7 +131,6 @@ class TwitterPoster {
 
     } catch (error) {
       console.error('❌ Twitter authentication failed:', error.message);
-      console.error('Full error:', error);
       throw error;
     }
   }
@@ -249,108 +248,6 @@ class TwitterPoster {
       throw error;
     }
   }
-
-  /**
-   * Start local auth server to handle OAuth callback
-   */
-  async startAuthServer() {
-    const http = require('http');
-    const url = require('url');
-
-    return new Promise(async (resolve, reject) => {
-      // Generate auth URL
-      const authLink = await this.generateAuthUrl();
-
-      // Create server
-      const server = http.createServer(async (req, res) => {
-        const parsedUrl = url.parse(req.url, true);
-
-        if (parsedUrl.pathname === '/callback') {
-          const authCode = parsedUrl.query.code;
-
-          if (authCode) {
-            try {
-              // Complete authentication
-              await this.completeAuth(authCode, authLink);
-
-              // Send success response
-              res.writeHead(200, { 'Content-Type': 'text/html' });
-              res.end(`
-                <html>
-                  <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-                    <h1 style="color: #1DA1F2;">✅ Twitter Authentication Successful!</h1>
-                    <p>You can now close this window and return to the terminal.</p>
-                    <p>The authentication tokens have been saved.</p>
-                  </body>
-                </html>
-              `);
-
-              console.log('🎉 Authentication complete! You can now post tweets.');
-              server.close();
-              resolve();
-
-            } catch (error) {
-              res.writeHead(500, { 'Content-Type': 'text/html' });
-              res.end(`
-                <html>
-                  <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-                    <h1 style="color: #E0245E;">❌ Authentication Failed</h1>
-                    <p>${error.message}</p>
-                    <p>Check the terminal for more details.</p>
-                  </body>
-                </html>
-              `);
-              server.close();
-              reject(error);
-            }
-          } else {
-            // Handle error
-            const error = parsedUrl.query.error || 'Unknown error';
-            res.writeHead(400, { 'Content-Type': 'text/html' });
-            res.end(`
-              <html>
-                <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-                  <h1 style="color: #E0245E;">❌ Authentication Error</h1>
-                  <p>${error}</p>
-                </body>
-              </html>
-            `);
-            server.close();
-            reject(new Error(error));
-          }
-        } else {
-          res.writeHead(404);
-          res.end('Not found');
-        }
-      });
-
-      // Start server
-      server.listen(3002, () => {
-        console.log('🌐 Local auth server started on http://localhost:3002');
-        console.log('🔗 Opening browser for Twitter authentication...');
-        console.log('');
-
-        // Try to open browser automatically
-        const { exec } = require('child_process');
-        const command = process.platform === 'win32' ? `start "${authLink.url}"` :
-                       process.platform === 'darwin' ? `open "${authLink.url}"` :
-                       `xdg-open "${authLink.url}"`;
-
-        exec(command, (error) => {
-          if (error) {
-            console.log('📱 Please manually visit this URL in your browser:');
-            console.log(authLink.url);
-          }
-        });
-      });
-
-      // Timeout after 5 minutes
-      setTimeout(() => {
-        server.close();
-        reject(new Error('Authentication timeout - please try again'));
-      }, 5 * 60 * 1000);
-    });
-  }
 }
 
 // CLI Interface for Twitter operations
@@ -383,7 +280,24 @@ async function main() {
     switch (command) {
       case 'auth':
         await twitter.initialize();
-        await twitter.startAuthServer();
+        const authLink = await twitter.generateAuthUrl();
+
+        // Simple code input
+        const readline = require('readline');
+        const rl = readline.createInterface({
+          input: process.stdin,
+          output: process.stdout
+        });
+
+        rl.question('Enter the authorization code from the callback URL: ', async (code) => {
+          try {
+            await twitter.completeAuth(code.trim(), authLink);
+            console.log('🎉 Authentication complete! You can now post tweets.');
+          } catch (error) {
+            console.error('Authentication failed:', error.message);
+          }
+          rl.close();
+        });
         break;
 
       case 'test':

@@ -274,27 +274,30 @@ if [ "$TWITTER_POST" = "--twitter" ]; then
             echo -e "${YELLOW}⚠️  Twitter credentials not configured (placeholders detected)${NC}"
             echo -e "${BLUE}💡 Twitter posting skipped. Configure credentials to enable posting.${NC}"
         else
-            # Generate metadata for Twitter
-            METADATA_JSON=$(cat <<EOF
+            # Generate metadata for Twitter (create temp file)
+            TEMP_JSON="/tmp/twitter_metadata_$$.json"
+            cat > "$TEMP_JSON" << EOF
 {
-  "title": "$TITLE",
-  "description": "$DESCRIPTION",
+  "title": "$(echo "$TITLE" | sed 's/"/\\"/g')",
+  "description": "$(echo "$DESCRIPTION" | sed 's/"/\\"/g' | sed 's/$/\\n/g' | sed 's/\\n$//' | tr '\n' '\\n')",
   "brand": "$BRAND",
   "contentType": "$CONTENT_TYPE",
   "playlistId": "$PLAYLIST"
 }
 EOF
-            )
 
             echo -e "${BLUE}📝 Posting to Twitter...${NC}"
 
             # Run Twitter poster
-            if node twitter-poster.js post "$METADATA_JSON"; then
+            if node twitter-poster.js post "$(cat "$TEMP_JSON")"; then
                 echo -e "${GREEN}✅ Twitter post successful!${NC}"
             else
                 echo -e "${RED}❌ Twitter post failed. Check authentication and try again.${NC}"
                 echo -e "${BLUE}💡 Run 'node twitter-poster.js auth' to authenticate${NC}"
             fi
+            
+            # Clean up temp file
+            rm -f "$TEMP_JSON"
         fi
     fi
 fi
