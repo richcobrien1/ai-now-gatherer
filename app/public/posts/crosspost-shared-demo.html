@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Crosspost Shared Demo — AI Now</title>
+  <style>
+    :root{--bg:#f2f4f7;--card:#fff;--muted:#6b7280;--accent:#0b5cff}
+    body{font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;color:#111;background:var(--bg);margin:0;padding:32px}
+    .wrap{max-width:980px;margin:0 auto}
+    header{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+    header img{width:56px;height:56px;border-radius:8px;object-fit:cover}
+    h1{font-size:20px;margin:0}
+    p.lead{margin:0;color:var(--muted)}
+    .grid{display:grid;grid-template-columns:1fr;gap:18px;margin-top:20px}
+    @media(min-width:880px){.grid{grid-template-columns:repeat(2,1fr)}}
+    .card{background:var(--card);padding:14px;border-radius:10px;box-shadow:0 6px 20px rgba(16,24,40,0.06);}
+    .platform{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+    .plat-badge{font-weight:700;color:#fff;padding:6px 10px;border-radius:999px;font-size:13px}
+    .linkedin{background:#0077b5}
+    .x{background:#1d9bf0}
+    .facebook{background:#1877f2}
+    .mastodon{background:#6366f1}
+    .threads{background:linear-gradient(90deg,#ff6b6b,#ffb86b)}
+    .post {border-radius:8px;padding:12px;border:1px solid #eef2f7;background:#fff}
+    .avatar{width:44px;height:44px;border-radius:8px;overflow:hidden;margin-right:10px}
+    .meta{color:var(--muted);font-size:13px;margin-top:6px}
+    .thumb{width:100%;height:176px;background:#e6edf8;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .thumb img{width:100%;height:100%;object-fit:cover}
+    .btn{display:inline-block;padding:8px 12px;background:var(--accent);color:#fff;border-radius:8px;text-decoration:none}
+    .text-content{white-space:pre-wrap;margin-top:8px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <img src="/public/logo.png" alt="site logo" onerror="this.style.display='none'"/>
+      <div>
+        <h1>Cross-post preview — "How AI Is Changing Newsrooms"</h1>
+        <p class="lead">This page shows how the same post would look when shared across multiple platforms. It's a faithful preview for the payload in <code>app/public/posts/latest-crosspost.json</code>.</p>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- LinkedIn -->
+      <div class="card">
+        <div class="platform"><span class="plat-badge linkedin">LinkedIn</span></div>
+        <div style="display:flex;gap:12px">
+          <div class="avatar"><img src="https://i.pravatar.cc/80?img=12" alt="avatar" style="width:100%;height:100%;object-fit:cover"></div>
+          <div style="flex:1">
+            <div style="font-weight:700">AI Now</div>
+            <div class="meta">Oct 17, 2025 • 1 comment • 12 shares</div>
+            <div class="post text-content">We just uploaded a short breakdown on how AI is changing newsrooms — practical workflows, caveats, and quick wins reporters can use today. Full video: https://www.youtube.com/watch?v=lAIERNZphMc
+
+If you work in newsrooms, I’d love to hear which AI workflows you’d try first.</div>
+            <div style="margin-top:12px">
+              <div class="thumb"><img src="https://i.ytimg.com/vi/lAIERNZphMc/hqdefault.jpg" alt="thumb"></div>
+              <div style="margin-top:8px"><a class="btn" href="https://www.youtube.com/watch?v=lAIERNZphMc" target="_blank">Watch on YouTube</a></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- X (Twitter) -->
+      <div class="card">
+        <div class="platform"><span class="plat-badge x">X</span></div>
+        <div style="display:flex;gap:12px">
+          <div class="avatar"><img src="https://i.pravatar.cc/80?img=5" alt="avatar" style="width:100%;height:100%;object-fit:cover"></div>
+          <div style="flex:1">
+            <div style="font-weight:700">@AINow</div>
+            <div class="meta">Oct 17, 2025 • 2h</div>
+            <div class="post text-content">New video: How AI Is Changing Newsrooms — practical workflows for reporters. Watch: https://www.youtube.com/watch?v=lAIERNZphMc</div>
+            <div style="margin-top:10px" class="thumb"><img src="https://i.ytimg.com/vi/lAIERNZphMc/hqdefault.jpg" alt="thumb"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Facebook -->
+      <div class="card">
+        <div class="platform"><span class="plat-badge facebook">Facebook</span></div>
+        <div style="display:flex;gap:12px">
+          <div class="avatar"><img src="https://i.pravatar.cc/80?img=16" alt="avatar" style="width:100%;height:100%;object-fit:cover"></div>
+          <div style="flex:1">
+            <div style="font-weight:700">AI Now</div>
+            <div class="meta">Just now • Public</div>
+            <div class="post text-content">We just uploaded a short breakdown on how AI is changing newsrooms — practical workflows and quick wins. Watch: https://www.youtube.com/watch?v=lAIERNZphMc</div>
+            <div style="margin-top:10px" class="thumb"><img src="https://i.ytimg.com/vi/lAIERNZphMc/hqdefault.jpg" alt="thumb"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mastodon -->
+      <div class="card">
+        <div class="platform"><span class="plat-badge mastodon">Mastodon</span></div>
+        <div style="display:flex;gap:12px">
+          <div class="avatar"><img src="https://i.pravatar.cc/80?img=7" alt="avatar" style="width:100%;height:100%;object-fit:cover"></div>
+          <div style="flex:1">
+            <div style="font-weight:700">AINow@social.example</div>
+            <div class="meta">Oct 17, 2025</div>
+            <div class="post text-content">How AI Is Changing Newsrooms — practical workflows for reporters. Watch the short video: https://www.youtube.com/watch?v=lAIERNZphMc</div>
+            <div style="margin-top:10px;color:var(--muted);font-size:13px">Boost • Reply • Favorite</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Threads -->
+      <div class="card">
+        <div class="platform"><span class="plat-badge threads">Threads</span></div>
+        <div style="display:flex;gap:12px">
+          <div class="avatar"><img src="https://i.pravatar.cc/80?img=3" alt="avatar" style="width:100%;height:100%;object-fit:cover"></div>
+          <div style="flex:1">
+            <div style="font-weight:700">AI Now</div>
+            <div class="meta">Oct 17, 2025</div>
+            <div class="post text-content">New video: How AI Is Changing Newsrooms — practical workflows for reporters. Watch: https://www.youtube.com/watch?v=lAIERNZphMc</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <section style="margin-top:18px">
+      <div class="card">
+        <h3>Exact payload used</h3>
+        <pre style="white-space:pre-wrap;background:#0f1724;color:#d1fae5;padding:12px;border-radius:8px">/app/public/posts/latest-crosspost.json
+
+{
+  "meta": {
+    "collected_at": "2025-10-17T12:00:00Z",
+    "video_id": "lAIERNZphMc",
+    "video_title": "How AI Is Changing Newsrooms — a short breakdown"
+  },
+  "payloads": {
+    "x": { "text": "New video: How AI Is Changing Newsrooms — practical workflows for reporters. Watch: https://www.youtube.com/watch?v=lAIERNZphMc" },
+    "linkedin": { "text": "We just uploaded a short breakdown on how AI is changing newsrooms — practical workflows, caveats, and quick wins reporters can use today. Full video: https://www.youtube.com/watch?v=lAIERNZphMc\n\nIf you work in newsrooms, I’d love to hear which AI workflows you’d try first." }
+  }
+}
+</pre>
+      </div>
+    </section>
+
+  </div>
+</body>
+</html>

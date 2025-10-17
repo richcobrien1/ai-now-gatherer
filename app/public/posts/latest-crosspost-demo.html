@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Demo: Crosspost for latest YouTube upload</title>
+  <style>
+    body { font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; max-width:800px; margin:40px auto; line-height:1.45; color:#111; }
+    header { margin-bottom:1.25rem }
+    iframe { max-width:100%; height:450px; border:0; }
+    pre.payload { background:#f6f8fa; padding:12px; border-radius:8px; overflow:auto }
+    .post { border-left:4px solid #0b5cff; padding:12px; border-radius:6px; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,0.04) }
+    h1,h2 { margin:0 0 8px 0 }
+    .meta { color:#666; font-size:0.95rem; margin-bottom:8px }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Demo crosspost — latest YouTube upload</h1>
+    <p class="meta">This is a preview page showing the exact post payload that would be sent to the crosspost pipeline. Use the JSON link below to POST to the n8n webhook or serve the page locally.</p>
+    <p><a href="latest-crosspost.json" target="_blank">View sample webhook payload (latest-crosspost.json)</a></p>
+  </header>
+
+  <section class="video">
+    <!-- Example YouTube video ID discovered earlier; replace with your actual latest video ID if different -->
+    <iframe src="https://www.youtube.com/embed/lAIERNZphMc" title="Latest YouTube upload" allowfullscreen></iframe>
+  </section>
+
+  <section style="margin-top:20px">
+    <div class="post">
+      <h2>Prepared post (single canonical message)</h2>
+      <p>Today we uploaded: <strong>How AI Is Changing Newsrooms — a short breakdown</strong></p>
+
+      <p>Watch the full video: <a href="https://www.youtube.com/watch?v=lAIERNZphMc">https://www.youtube.com/watch?v=lAIERNZphMc</a></p>
+
+      <p style="white-space:pre-wrap;font-family:inherit;background:#f7f9fb;padding:10px;border-radius:6px">We just published a new video: How AI Is Changing Newsrooms — a short breakdown. In it, we show practical workflows and quick wins for reporters using AI tools in daily coverage. Watch, share, and let us know what you try first.</p>
+
+      <p class="meta">Suggested short text for X (Twitter):</p>
+      <p style="font-weight:600">New video: How AI Is Changing Newsrooms — practical workflows for reporters. Watch: https://www.youtube.com/watch?v=lAIERNZphMc</p>
+
+      <p class="meta">Suggested LinkedIn post (longer):</p>
+      <p style="white-space:pre-wrap">We just uploaded a short breakdown on how AI is changing newsrooms — practical workflows, caveats, and quick wins reporters can use today. Full video: https://www.youtube.com/watch?v=lAIERNZphMc
+
+If you work in newsrooms, I’d love to hear which AI workflows you’d try first.</p>
+
+      <p class="meta">Suggested Mastodon / Local-friendly post:</p>
+      <p style="white-space:pre-wrap">How AI Is Changing Newsrooms — practical workflows for reporters. Watch the short video and share your experiments: https://www.youtube.com/watch?v=lAIERNZphMc</p>
+
+    </div>
+  </section>
+
+  <section style="margin-top:20px">
+    <h2>How to view this demo locally</h2>
+    <p>Run a static server from the repo root and open the file in your browser. Examples:</p>
+    <pre class="payload"># Using Node http-server (recommended)
+npx http-server app/public -p 8080
+
+# Or using Python (if available)
+python -m http.server 8080 --directory app/public
+
+# Then open in your browser:
+# http://localhost:8080/posts/latest-crosspost-demo.html
+</pre>
+  </section>
+
+  <section style="margin-top:20px">
+    <h2>One-click POST to n8n (manual)</h2>
+    <p>If your n8n webhook is reachable, copy the file <code>latest-crosspost.json</code> and POST to <code>/webhook/youtube-latest</code>. Example curl:</p>
+    <pre class="payload">curl -X POST "https://your-n8n.example.com/webhook/youtube-latest" \
+  -H 'Content-Type: application/json' \
+  --data-binary @latest-crosspost.json
+</pre>
+  </section>
+
+  <footer style="margin-top:36px;color:#666;font-size:0.9rem">Demo generated: Oct 17, 2025 — preview only. This page is static and safe to share internally.</footer>
+</body>
+</html>

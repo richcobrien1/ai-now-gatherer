@@ -1,0 +1,141 @@
+{
+  "name": "YouTube Latest Crosspost",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "youtube-latest",
+        "options": {
+          "responseMode": "lastNode",
+          "responseData": "allEntries",
+          "responseCode": 200
+        }
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.linkedin.com/v2/ugcPosts",
+        "options": {
+          "headers": {
+            "Authorization": "=\"Bearer \" + $credentials.linkedinApi.token",
+            "Content-Type": "application/json"
+          }
+        },
+        "bodyParametersJson": "=JSON.stringify({
+          author: 'urn:li:organization:YOUR_ORG_URN_OR_urn:li:person:YOUR_PERSON_URN',
+          lifecycleState: 'PUBLISHED',
+          specificContent: {
+            'com.linkedin.ugc.ShareContent': {
+              shareCommentary: { text: $json.payloads.linkedin.text },
+              shareMediaCategory: 'ARTICLE',
+              media: [ { status: 'READY', originalUrl: $json.video.url } ]
+            }
+          },
+          visibility: { 'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC' }
+        })"
+      },
+      "name": "Post to LinkedIn",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [650, 120]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.twitter.com/2/tweets",
+        "options": {
+          "headers": {
+            "Authorization": "=\"Bearer \" + $credentials.twitterApi.bearer",
+            "Content-Type": "application/json"
+          }
+        },
+        "bodyParametersJson": "=JSON.stringify({ text: $json.payloads.x.text })"
+      },
+      "name": "Post to X",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [650, 240]
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v16.0/me/feed",
+        "options": {
+          "headers": {
+            "Authorization": "=\"Bearer \" + $credentials.facebookApi.token"
+          }
+        },
+        "bodyParametersJson": "=JSON.stringify({ message: $json.payloads.facebook.text })"
+      },
+      "name": "Post to Facebook",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [650, 360]
+    },
+    {
+      "parameters": {
+        "url": "=https://YOUR-MASTODON-INSTANCE/api/v1/statuses",
+        "options": {
+          "headers": {
+            "Authorization": "=\"Bearer \" + $credentials.mastodonApi.token"
+          }
+        },
+        "bodyParametersJson": "=JSON.stringify({ status: $json.payloads.locals.text })"
+      },
+      "name": "Post to Mastodon",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [650, 480]
+    },
+    {
+      "parameters": {
+        "url": "={{$json[\"webhook_url\"] || 'https://hooks.example.com/threads'}}",
+        "options": {
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        },
+        "bodyParametersJson": "=JSON.stringify({ text: $json.payloads.threads.text })"
+      },
+      "name": "Post to Threads (webhook)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [650, 600]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Post to LinkedIn",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Post to X",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Post to Facebook",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Post to Mastodon",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Post to Threads (webhook)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

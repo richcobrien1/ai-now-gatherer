@@ -130,3 +130,9 @@ Thumbs.db
 # Temporary files
 tmp/
 temp/
+.env
+/.env
+/.env.*
+
+# scripts
+scripts/*.sh

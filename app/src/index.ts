@@ -353,6 +353,16 @@ async function safeKVDelete(env: Env, key: string): Promise<boolean> {
    store small JSON blobs under meta/<key>.json in R2 when KV put fails (e.g., quota 429)
 */
 async function getMeta(env: Env, key: string): Promise<string|null> {
+  // Prefer R2 for meta reads (to avoid KV quotas); fall back to KV when R2 is missing
+  try {
+    if (env.R2_SOURCES) {
+      const obj = await env.R2_SOURCES.get(`meta/${key}.json`);
+      if (obj) return await obj.text();
+    }
+  } catch (e) {
+    console.error('R2 get meta error', e);
+    // fall through to KV
+  }
   try {
     if (env.NEWS_CACHE) {
       const v = await env.NEWS_CACHE.get(key);
@@ -361,56 +371,50 @@ async function getMeta(env: Env, key: string): Promise<string|null> {
   } catch (e) {
     console.error('KV get error (meta)', e);
   }
-  try {
-    if (!env.R2_SOURCES) return null;
-    const obj = await env.R2_SOURCES.get(`meta/${key}.json`);
-    if (!obj) return null;
-    return await obj.text();
-  } catch (e) {
-    console.error('R2 get meta error', e);
-    return null;
-  }
+  return null;
 }
 
 async function putMeta(env: Env, key: string, value: string): Promise<boolean> {
-  // Try KV first
+  // Prefer R2 for meta writes to avoid exhausting KV put quotas.
+  try {
+    if (env.R2_SOURCES) {
+      await env.R2_SOURCES.put(`meta/${key}.json`, value, { httpMetadata: { contentType: 'application/json' } });
+      return true;
+    }
+  } catch (e) {
+    console.error('R2 put meta error', e);
+    // fall through to KV as a last resort
+  }
+  // Fall back to KV if R2 isn't available or failed
   try {
     if (env.NEWS_CACHE) {
       const ok = await safeKVPut(env, key, value);
       if (ok) return true;
-      // if KV put failed (e.g., rate limit), fall through to R2
     }
   } catch (e) {
     console.error('KV put error (meta)', e);
   }
-  // Write to R2 as fallback
-  try {
-    if (!env.R2_SOURCES) return false;
-    await env.R2_SOURCES.put(`meta/${key}.json`, value, { httpMetadata: { contentType: 'application/json' } });
-    return true;
-  } catch (e) {
-    console.error('R2 put meta error', e);
-    return false;
-  }
+  return false;
 }
 
 async function deleteMeta(env: Env, key: string): Promise<boolean> {
+  // Prefer deleting from R2 first
+  try {
+    if (env.R2_SOURCES) {
+      await env.R2_SOURCES.delete(`meta/${key}.json`);
+    }
+  } catch (e) {
+    console.error('R2 delete meta error', e);
+  }
+  // Try to delete from KV as well for consistency (best-effort)
   try {
     if (env.NEWS_CACHE) {
-      const ok = await safeKVDelete(env, key);
-      // don't return early; try to delete from R2 too to keep consistent
+      await safeKVDelete(env, key);
     }
   } catch (e) {
     console.error('KV delete error (meta)', e);
   }
-  try {
-    if (!env.R2_SOURCES) return true;
-    await env.R2_SOURCES.delete(`meta/${key}.json`);
-    return true;
-  } catch (e) {
-    console.error('R2 delete meta error', e);
-    return false;
-  }
+  return true;
 }
 
 /* Simple gatherers */

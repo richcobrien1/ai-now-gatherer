@@ -1,0 +1,34 @@
+{
+  "meta": {
+    "collected_at": "2025-10-17T12:00:00Z",
+    "source": "YouTube",
+    "channel": "AI Now",
+    "video_id": "lAIERNZphMc",
+    "video_title": "How AI Is Changing Newsrooms — a short breakdown",
+    "video_url": "https://www.youtube.com/watch?v=lAIERNZphMc"
+  },
+  "video": {
+    "id": "lAIERNZphMc",
+    "url": "https://www.youtube.com/watch?v=lAIERNZphMc",
+    "embed": "https://www.youtube.com/embed/lAIERNZphMc",
+    "thumbnail": "https://i.ytimg.com/vi/lAIERNZphMc/hqdefault.jpg"
+  },
+  "payloads": {
+    "x": {
+      "text": "New video: How AI Is Changing Newsrooms — practical workflows for reporters. Watch: https://www.youtube.com/watch?v=lAIERNZphMc"
+    },
+    "linkedin": {
+      "text": "We just uploaded a short breakdown on how AI is changing newsrooms — practical workflows, caveats, and quick wins reporters can use today. Full video: https://www.youtube.com/watch?v=lAIERNZphMc\n\nIf you work in newsrooms, I’d love to hear which AI workflows you’d try first."
+    },
+    "facebook": {
+      "text": "We just uploaded a short breakdown on how AI is changing newsrooms — practical workflows and quick wins. Watch: https://www.youtube.com/watch?v=lAIERNZphMc"
+    },
+    "mastodon": {
+      "text": "How AI Is Changing Newsrooms — practical workflows for reporters. Watch the short video: https://www.youtube.com/watch?v=lAIERNZphMc"
+    },
+    "threads": {
+      "text": "New video: How AI Is Changing Newsrooms — practical workflows for reporters. Watch: https://www.youtube.com/watch?v=lAIERNZphMc"
+    }
+  },
+  "webhook_url": "https://n8n.example.com/webhook/youtube-latest"
+}

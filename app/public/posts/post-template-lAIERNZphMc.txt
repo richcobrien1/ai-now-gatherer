@@ -1,0 +1,7 @@
+AI-Now — Great AI Infrastructure
+
+We just dropped a deep dive with Alex and Jessica on building robust AI infrastructure — from data pipelines to model ops and production reliability. Watch the full episode and let us know which part you want us to unpack next.
+
+Watch: https://www.youtube.com/watch?v=lAIERNZphMc
+
+#AI #MachineLearning #MLOps #Infrastructure
