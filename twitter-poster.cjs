@@ -88,14 +88,14 @@ class TwitterPoster {
 
     console.log('🔗 Generating Twitter authorization URL...');
 
-    const authLink = await this.client.generateOAuth2AuthLink('http://localhost:3002/callback', {
+    const authLink = await this.client.generateOAuth2AuthLink('https://www.v2u.us/api/social-auth/twitter/callback', {
       scope: ['tweet.read', 'tweet.write', 'users.read']
     });
 
     console.log('\n🔗 Visit this URL to authorize the app:');
     console.log(authLink.url);
-    console.log('\n📝 Copy the authorization code from the callback URL and paste it here.');
-    console.log('   The URL will look like: http://localhost:3002/callback?code=ABC123...\n');
+    console.log('\n📝 Copy the authorization code from the callback page.');
+    console.log('   You will be redirected to: https://www.v2u.us/api/social-auth/twitter/callback?code=ABC123...\n');
 
     return authLink;
   }
@@ -112,7 +112,7 @@ class TwitterPoster {
       const { client: userClient, accessToken, refreshToken } = await this.client.loginWithOAuth2({
         code: authCode,
         codeVerifier: authLink.codeVerifier,
-        redirectUri: 'http://localhost:3002/callback'
+        redirectUri: 'https://www.v2u.us/api/social-auth/twitter/callback'
       });
 
       const tokens = {
@@ -251,84 +251,15 @@ class TwitterPoster {
   }
 
   /**
-   * Start local auth server to handle OAuth callback
+   * Start auth flow - opens browser and waits for user to paste auth code
    */
-  async startAuthServer() {
-    const http = require('http');
-    const url = require('url');
+  async startAuthFlow() {
+    const readline = require('readline');
 
     return new Promise(async (resolve, reject) => {
-      // Generate auth URL
-      const authLink = await this.generateAuthUrl();
-
-      // Create server
-      const server = http.createServer(async (req, res) => {
-        const parsedUrl = url.parse(req.url, true);
-
-        if (parsedUrl.pathname === '/callback') {
-          const authCode = parsedUrl.query.code;
-
-          if (authCode) {
-            try {
-              // Complete authentication
-              await this.completeAuth(authCode, authLink);
-
-              // Send success response
-              res.writeHead(200, { 'Content-Type': 'text/html' });
-              res.end(`
-                <html>
-                  <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-                    <h1 style="color: #1DA1F2;">✅ Twitter Authentication Successful!</h1>
-                    <p>You can now close this window and return to the terminal.</p>
-                    <p>The authentication tokens have been saved.</p>
-                  </body>
-                </html>
-              `);
-
-              console.log('🎉 Authentication complete! You can now post tweets.');
-              server.close();
-              resolve();
-
-            } catch (error) {
-              res.writeHead(500, { 'Content-Type': 'text/html' });
-              res.end(`
-                <html>
-                  <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-                    <h1 style="color: #E0245E;">❌ Authentication Failed</h1>
-                    <p>${error.message}</p>
-                    <p>Check the terminal for more details.</p>
-                  </body>
-                </html>
-              `);
-              server.close();
-              reject(error);
-            }
-          } else {
-            // Handle error
-            const error = parsedUrl.query.error || 'Unknown error';
-            res.writeHead(400, { 'Content-Type': 'text/html' });
-            res.end(`
-              <html>
-                <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-                  <h1 style="color: #E0245E;">❌ Authentication Error</h1>
-                  <p>${error}</p>
-                </body>
-              </html>
-            `);
-            server.close();
-            reject(new Error(error));
-          }
-        } else {
-          res.writeHead(404);
-          res.end('Not found');
-        }
-      });
-
-      // Start server
-      server.listen(3002, () => {
-        console.log('🌐 Local auth server started on http://localhost:3002');
-        console.log('🔗 Opening browser for Twitter authentication...');
-        console.log('');
+      try {
+        // Generate auth URL
+        const authLink = await this.generateAuthUrl();
 
         // Try to open browser automatically
         const { exec } = require('child_process');
@@ -336,19 +267,47 @@ class TwitterPoster {
                        process.platform === 'darwin' ? `open "${authLink.url}"` :
                        `xdg-open "${authLink.url}"`;
 
+        console.log('🌐 Opening browser for Twitter authentication...');
+        console.log('');
+
         exec(command, (error) => {
           if (error) {
             console.log('📱 Please manually visit this URL in your browser:');
             console.log(authLink.url);
           }
         });
-      });
 
-      // Timeout after 5 minutes
-      setTimeout(() => {
-        server.close();
-        reject(new Error('Authentication timeout - please try again'));
-      }, 5 * 60 * 1000);
+        console.log('');
+        console.log('After authorizing, you will see a success page with an authorization code.');
+        console.log('');
+
+        // Create readline interface to get auth code from user
+        const rl = readline.createInterface({
+          input: process.stdin,
+          output: process.stdout
+        });
+
+        rl.question('📝 Paste the authorization code here: ', async (authCode) => {
+          rl.close();
+
+          if (!authCode || authCode.trim() === '') {
+            reject(new Error('No authorization code provided'));
+            return;
+          }
+
+          try {
+            // Complete authentication
+            await this.completeAuth(authCode.trim(), authLink);
+            console.log('🎉 Authentication complete! You can now post tweets.');
+            resolve();
+          } catch (error) {
+            reject(error);
+          }
+        });
+
+      } catch (error) {
+        reject(error);
+      }
     });
   }
 }
@@ -373,7 +332,7 @@ async function main() {
     console.log('  "apiSecret": "your_client_secret"');
     console.log('}');
     console.log('');
-    console.log('Make sure http://localhost:3002/callback is set as a redirect URI in your Twitter app!');
+    console.log('Make sure https://www.v2u.us/api/social-auth/twitter/callback is set as a redirect URI in your X app!');
     return;
   }
 
@@ -383,7 +342,7 @@ async function main() {
     switch (command) {
       case 'auth':
         await twitter.initialize();
-        await twitter.startAuthServer();
+        await twitter.startAuthFlow();
         break;
 
       case 'test':

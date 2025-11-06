@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# Twitter API Setup for AI-Now
-# Helps configure Twitter API integration
+# X (Twitter) API Setup for AI-Now
+# Helps configure X API integration with OAuth 2.0
 
-echo "🐦 Twitter API Setup for AI-Now"
-echo "==============================="
+echo "🐦 X (Twitter) API Setup for AI-Now"
+echo "====================================="
 
 # Colors
 RED='\033[0;31m'
@@ -30,24 +30,47 @@ if [ -f "twitter-config.json" ]; then
     fi
 fi
 
-echo -e "${BLUE}📋 To set up Twitter API:${NC}"
-echo "1. Go to: https://developer.twitter.com/"
-echo "2. Create a new app or use existing one"
-echo "3. Get your API Key and API Secret"
+echo -e "${BLUE}📋 X API Setup Instructions:${NC}"
+echo ""
+echo "1. Go to: https://developer.twitter.com/en/portal/dashboard"
+echo "2. Select your app or create a new one"
+echo "3. Navigate to 'User authentication settings'"
+echo "4. Set up OAuth 2.0 with these settings:"
+echo "   - Type of App: Web App"
+echo "   - Callback URI: http://localhost:3003/callback"
+echo "   - Website URL: https://www.v2u.us"
+echo ""
+echo "5. Go to 'Keys and tokens' section"
+echo "6. Find 'OAuth 2.0 Client ID and Client Secret'"
+echo "7. Copy your Client ID and Client Secret"
 echo ""
 
 # Copy template
 cp twitter-config-template.json twitter-config.json
 echo -e "${GREEN}✅ Created twitter-config.json${NC}"
 
-echo -e "${YELLOW}📝 Please edit twitter-config.json and add your API credentials:${NC}"
-echo "  - apiKey: Your Twitter API Key"
-echo "  - apiSecret: Your Twitter API Secret"
+echo ""
+echo -e "${YELLOW}📝 Please edit twitter-config.json and add your OAuth 2.0 credentials:${NC}"
+echo "  - apiKey: Your OAuth 2.0 Client ID"
+echo "  - apiSecret: Your OAuth 2.0 Client Secret"
+echo "  - callbackUri: http://localhost:3003/callback (already set)"
 echo ""
 
-echo -e "${BLUE}🔐 Once configured, run:${NC}"
-echo "  node twitter-poster.js auth    # Authenticate with Twitter"
+echo -e "${BLUE}🔐 Once configured, run these commands:${NC}"
+echo "  node twitter-poster.js auth    # Authenticate with X (opens browser)"
 echo "  node twitter-poster.js test    # Test the connection"
+echo "  node twitter-poster.js post    # Post a test tweet"
 echo ""
 
-echo -e "${GREEN}🎉 Setup complete! Edit the config file and run authentication.${NC}"
+echo -e "${YELLOW}⚠️  IMPORTANT SECURITY NOTES:${NC}"
+echo "  - Keep twitter-config.json and twitter-tokens.json private"
+echo "  - These files are already in .gitignore"
+echo "  - Never commit API credentials to version control"
+echo "  - OAuth 2.0 tokens expire after 2 hours (auto-refreshed)"
+echo ""
+
+echo -e "${BLUE}📖 For detailed setup guide, see:${NC}"
+echo "  X-TWITTER-SETUP-GUIDE.md"
+echo ""
+
+echo -e "${GREEN}🎉 Setup template created! Follow the instructions above.${NC}"

@@ -1,4 +1,5 @@
 {
   "apiKey": "T3dnZ1ZDam1iZEt5eTlTXzYyR0E6MTpjaQ",
-  "apiSecret": "Hs3Jij2Itr6AYZ-OAgrOzp7SPP10IU7ZrYOQmTg1XSl_V_M-il"
+  "apiSecret": "Hs3Jij2Itr6AYZ-OAgrOzp7SPP10IU7ZrYOQmTg1XSl_V_M-il",
+  "callbackUri": "https://www.v2u.us/api/social-auth/twitter/callback"
 }
