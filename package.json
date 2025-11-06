@@ -8,7 +8,8 @@
     "crosspost:run": "DRY_RUN=false node scripts/auto-crosspost.js"
   },
   "dependencies": {
-    "dotenv": "^16.0.0",
-    "node-fetch": "^3.3.1"
+    "dotenv": "^16.6.1",
+    "node-fetch": "^3.3.1",
+    "twitter-api-v2": "^1.27.0"
   }
 }
