@@ -384,6 +384,47 @@ async function main() {
     const result = await uploadToYouTube(videoPath, metadata);
     console.log('\n🎉 Upload complete!');
     console.log(JSON.stringify(result, null, 2));
+    
+    // Automatically post to social media (Desktop content → X + LinkedIn)
+    if (result.url) {
+      console.log('\n📱 Auto-posting YouTube link to X + LinkedIn...');
+      const fetch = require('node-fetch');
+      
+      try {
+        const socialResponse = await fetch('https://www.v2u.us/api/social-post', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            platforms: ['twitter', 'linkedin'],
+            episode: {
+              title: metadata.title,
+              description: metadata.description,
+              youtubeUrl: result.url,
+              category: brand,
+              publishDate: new Date().toISOString().split('T')[0],
+            },
+          }),
+        });
+        
+        const socialResult = await socialResponse.json();
+        console.log(`\n📊 Social Media Results: ${socialResult.summary.succeeded}/${socialResult.summary.total} succeeded`);
+        
+        if (socialResult.results.twitter?.success) {
+          console.log(`   ✅ X/Twitter: ${socialResult.results.twitter.url}`);
+        } else if (socialResult.results.twitter?.error) {
+          console.log(`   ❌ X/Twitter: ${socialResult.results.twitter.error}`);
+        }
+        
+        if (socialResult.results.linkedin?.success) {
+          console.log(`   ✅ LinkedIn: Posted successfully`);
+        } else if (socialResult.results.linkedin?.error) {
+          console.log(`   ❌ LinkedIn: ${socialResult.results.linkedin.error}`);
+        }
+      } catch (socialError) {
+        console.error('⚠️  Auto-post to social media failed:', socialError.message);
+        console.log('   (You can manually post from the admin panel)');
+      }
+    }
   } catch (error) {
     console.error('❌ Upload failed:', error.message);
     process.exit(1);
